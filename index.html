@@ -39,7 +39,7 @@
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Bote Total Recaudado (€)</label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-emerald-600 font-bold text-lg">€</span>
-                        <input type="number" id="boteTotal" step="0.01" value="" placeholder="0.00" oninput="calcularTodo()" 
+                        <input type="number" id="boteTotal" step="0.01" value="" placeholder="0.00" oninput="calcularRealtime()" 
                             class="w-full pl-8 pr-4 py-2.5 bg-emerald-50 border border-emerald-300 rounded-xl font-bold text-emerald-800 text-xl focus:outline-none focus:ring-2 focus:ring-emerald-500">
                     </div>
                 </div>
@@ -134,7 +134,8 @@
                 try { datos = JSON.parse(guardado); } catch(e) {}
             }
             document.getElementById("boteTotal").value = datos.bote;
-            renderizar();
+            renderizarEstructura();
+            calcularRealtime();
         }
 
         function guardarStorage() {
@@ -142,84 +143,42 @@
             localStorage.setItem("propinas_higueral_data_v3", JSON.stringify(datos));
         }
 
-        function renderizar() {
+        function renderizarEstructura() {
             const container = document.getElementById("seccionesContainer");
             container.innerHTML = "";
 
-            let totalHorasGlobal = 0;
-            let totalEurosGlobal = 0;
-            let totalPersonasActivas = 0;
-            let listaPagadosHTML = "";
-            let countPagados = 0;
-
-            let tempHorasTotales = 0;
-            datos.deptos.forEach(d => {
-                d.empleados.forEach(e => {
-                    if (e.nombre.trim() !== "" && e.horas !== "" && !isNaN(e.horas) && Number(e.horas) > 0) {
-                        tempHorasTotales += Number(e.horas);
-                    }
-                });
-            });
-            const bote = parseFloat(document.getElementById("boteTotal").value) || 0;
-            const precioHora = tempHorasTotales > 0 ? bote / tempHorasTotales : 0;
-
             datos.deptos.forEach((dept, dIndex) => {
-                let deptHoras = 0;
-                let deptEuros = 0;
-
                 let htmlRows = "";
                 dept.empleados.forEach((emp, eIndex) => {
-                    const hNum = emp.horas !== "" && !isNaN(emp.horas) ? Number(emp.horas) : 0;
-                    const propina = hNum * precioHora;
-                    
-                    if (emp.nombre.trim() !== "" && hNum > 0) {
-                        deptHoras += hNum;
-                        deptEuros += propina;
-                        totalPersonasActivas++;
-                    }
-
-                    if (emp.cobrado && emp.nombre.trim() !== "") {
-                        countPagados++;
-                        listaPagadosHTML += `
-                            <div class="flex justify-between items-center py-1.5 border-b border-slate-100 last:border-0">
-                                <span class="font-medium text-slate-800"><i class="fa-solid fa-check text-emerald-500 mr-2"></i>${emp.nombre} <span class="text-xs text-slate-400">(${dept.nombre})</span></span>
-                                <span class="font-bold text-emerald-700">${propina.toFixed(2)} €</span>
-                            </div>
-                        `;
-                    }
-
                     htmlRows += `
                         <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
                             <td class="p-2.5 text-center text-xs font-semibold text-slate-400">${eIndex + 1}</td>
                             <td class="p-2.5">
                                 <input type="text" value="${emp.nombre}" placeholder="Nombre..." 
-                                    onblur="actualizarDato(${dIndex}, ${eIndex}, 'nombre', this.value)"
+                                    oninput="actualizarTexto(${dIndex}, ${eIndex}, 'nombre', this.value)"
                                     class="w-full bg-transparent font-medium text-slate-800 focus:bg-white focus:px-2 py-1 rounded border border-transparent focus:border-slate-300 focus:outline-none">
                             </td>
                             <td class="p-2.5">
                                 <input type="text" inputmode="decimal" value="${emp.horas}" placeholder="" 
-                                    oninput="actualizarDatoDirecto(${dIndex}, ${eIndex}, this.value)"
+                                    oninput="actualizarHoras(${dIndex}, ${eIndex}, this.value)"
                                     class="w-20 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-right font-semibold focus:bg-white focus:outline-none focus:ring-1 focus:ring-slate-400">
                             </td>
                             <td class="p-2.5 hidden sm:table-cell">
                                 <input type="text" value="${emp.nota}" placeholder="Turno..." 
-                                    onblur="actualizarDato(${dIndex}, ${eIndex}, 'nota', this.value)"
+                                    oninput="actualizarTexto(${dIndex}, ${eIndex}, 'nota', this.value)"
                                     class="w-full bg-transparent text-slate-500 text-sm focus:bg-white focus:px-2 py-1 rounded border border-transparent focus:border-slate-300 focus:outline-none">
                             </td>
-                            <td class="p-2.5 text-right font-bold text-emerald-700">
-                                ${propina.toFixed(2)} €
+                            <td class="p-2.5 text-right font-bold text-emerald-700" id="propina_${dIndex}_${eIndex}">
+                                0.00 €
                             </td>
                             <td class="p-2.5 text-center">
-                                <button type="button" onclick="toggleCobrado(${dIndex}, ${eIndex})" class="w-7 h-7 rounded-lg transition ${emp.cobrado ? 'bg-emerald-500 text-white shadow-sm' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}">
+                                <button type="button" id="btn_cobrado_${dIndex}_${eIndex}" onclick="toggleCobrado(${dIndex}, ${eIndex})" class="w-7 h-7 rounded-lg transition ${emp.cobrado ? 'bg-emerald-500 text-white shadow-sm' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}">
                                     <i class="fa-solid fa-check text-xs"></i>
                                 </button>
                             </td>
                         </tr>
                     `;
                 });
-
-                totalHorasGlobal += deptHoras;
-                totalEurosGlobal += deptEuros;
 
                 const card = document.createElement("section");
                 card.className = "bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden";
@@ -250,12 +209,73 @@
                     <div class="bg-slate-50 px-4 py-2.5 border-t border-slate-200 flex justify-between items-center text-xs font-bold text-slate-600">
                         <span>Subtotal ${dept.nombre}</span>
                         <div class="space-x-4">
-                            <span>${deptHoras.toFixed(1)} h</span>
-                            <span class="text-slate-900">${deptEuros.toFixed(2)} €</span>
+                            <span id="subtotal_horas_${dIndex}">0.0 h</span>
+                            <span class="text-slate-900" id="subtotal_euros_${dIndex}">0.00 €</span>
                         </div>
                     </div>
                 `;
                 container.appendChild(card);
+            });
+        }
+
+        function calcularRealtime() {
+            guardarStorage();
+
+            let tempHorasTotales = 0;
+            datos.deptos.forEach(d => {
+                d.empleados.forEach(e => {
+                    if (e.nombre.trim() !== "" && e.horas !== "" && !isNaN(e.horas) && Number(e.horas) > 0) {
+                        tempHorasTotales += Number(e.horas);
+                    }
+                });
+            });
+
+            const bote = parseFloat(document.getElementById("boteTotal").value) || 0;
+            const precioHora = tempHorasTotales > 0 ? bote / tempHorasTotales : 0;
+
+            let totalHorasGlobal = 0;
+            let totalEurosGlobal = 0;
+            let totalPersonasActivas = 0;
+            let listaPagadosHTML = "";
+            let countPagados = 0;
+
+            datos.deptos.forEach((dept, dIndex) => {
+                let deptHoras = 0;
+                let deptEuros = 0;
+
+                dept.empleados.forEach((emp, eIndex) => {
+                    const hNum = emp.horas !== "" && !isNaN(emp.horas) ? Number(emp.horas) : 0;
+                    const propina = hNum * precioHora;
+
+                    const celdaPropina = document.getElementById(`propina_${dIndex}_${eIndex}`);
+                    if (celdaPropina) {
+                        celdaPropina.innerText = propina.toFixed(2) + " €";
+                    }
+
+                    if (emp.nombre.trim() !== "" && hNum > 0) {
+                        deptHoras += hNum;
+                        deptEuros += propina;
+                        totalPersonasActivas++;
+                    }
+
+                    if (emp.cobrado && emp.nombre.trim() !== "") {
+                        countPagados++;
+                        listaPagadosHTML += `
+                            <div class="flex justify-between items-center py-1.5 border-b border-slate-100 last:border-0">
+                                <span class="font-medium text-slate-800"><i class="fa-solid fa-check text-emerald-500 mr-2"></i>${emp.nombre} <span class="text-xs text-slate-400">(${dept.nombre})</span></span>
+                                <span class="font-bold text-emerald-700">${propina.toFixed(2)} €</span>
+                            </div>
+                        `;
+                    }
+                });
+
+                const elSubHoras = document.getElementById(`subtotal_horas_${dIndex}`);
+                const elSubEuros = document.getElementById(`subtotal_euros_${dIndex}`);
+                if (elSubHoras) elSubHoras.innerText = deptHoras.toFixed(1) + " h";
+                if (elSubEuros) elSubEuros.innerText = deptEuros.toFixed(2) + " €";
+
+                totalHorasGlobal += deptHoras;
+                totalEurosGlobal += deptEuros;
             });
 
             document.getElementById("lblTotalHoras").innerText = totalHorasGlobal.toFixed(1) + " h";
@@ -274,64 +294,35 @@
             }
         }
 
-        function actualizarDatoDirecto(dIndex, eIndex, valor) {
+        function actualizarHoras(dIndex, eIndex, valor) {
             datos.deptos[dIndex].empleados[eIndex].horas = valor;
-            guardarStorage();
-            
-            let totalHorasGlobal = 0;
-            let tempHorasTotales = 0;
-            datos.deptos.forEach(d => {
-                d.empleados.forEach(e => {
-                    if (e.nombre.trim() !== "" && e.horas !== "" && !isNaN(e.horas) && Number(e.horas) > 0) {
-                        tempHorasTotales += Number(e.horas);
-                    }
-                });
-            });
-            const bote = parseFloat(document.getElementById("boteTotal").value) || 0;
-            const precioHora = tempHorasTotales > 0 ? bote / tempHorasTotales : 0;
-
-            document.getElementById("lblPrecioHora").innerText = precioHora.toFixed(2) + " €/h";
-            
-            let totalEurosGlobal = 0;
-            let totalPersonasActivas = 0;
-            datos.deptos.forEach(d => {
-                d.empleados.forEach(e => {
-                    const hNum = e.horas !== "" && !isNaN(e.horas) ? Number(e.horas) : 0;
-                    if (e.nombre.trim() !== "" && hNum > 0) {
-                        totalHorasGlobal += hNum;
-                        totalEurosGlobal += hNum * precioHora;
-                        totalPersonasActivas++;
-                    }
-                });
-            });
-
-            document.getElementById("lblTotalHoras").innerText = totalHorasGlobal.toFixed(1) + " h";
-            document.getElementById("lblRepartido").innerText = totalEurosGlobal.toFixed(2) + " €";
-            document.getElementById("txtTotalPersonas").innerText = totalPersonasActivas + " personas con horas";
-            document.getElementById("txtGranTotalEuros").innerText = totalEurosGlobal.toFixed(2) + " €";
+            calcularRealtime();
         }
 
-        function actualizarDato(dIndex, eIndex, campo, valor) {
+        function actualizarTexto(dIndex, eIndex, campo, valor) {
             datos.deptos[dIndex].empleados[eIndex][campo] = valor;
-            guardarStorage();
-            renderizar();
+            calcularRealtime();
         }
 
         function agregarFila(dIndex) {
             datos.deptos[dIndex].empleados.push({ nombre: "", horas: "", nota: "", cobrado: false });
             guardarStorage();
-            renderizar();
+            renderizarEstructura();
+            calcularRealtime();
         }
 
         function toggleCobrado(dIndex, eIndex) {
             datos.deptos[dIndex].empleados[eIndex].cobrado = !datos.deptos[dIndex].empleados[eIndex].cobrado;
-            guardarStorage();
-            renderizar();
-        }
-
-        function calcularTodo() {
-            guardarStorage();
-            renderizar();
+            
+            const btn = document.getElementById(`btn_cobrado_${dIndex}_${eIndex}`);
+            if (btn) {
+                if (datos.deptos[dIndex].empleados[eIndex].cobrado) {
+                    btn.className = "w-7 h-7 rounded-lg transition bg-emerald-500 text-white shadow-sm";
+                } else {
+                    btn.className = "w-7 h-7 rounded-lg transition bg-slate-100 text-slate-400 hover:bg-slate-200";
+                }
+            }
+            calcularRealtime();
         }
 
         function resetData() {
