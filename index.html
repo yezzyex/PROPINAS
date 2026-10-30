@@ -3,365 +3,434 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Reparto de Propinas Pro</title>
+    <title>Propinas - Higueral Restaurante</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Propinas Higueral">
+    <link rel="apple-touch-icon" href="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=180&h=180&fit=crop">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        higueralDark: '#0B1320',
+                        higueralCard: '#131D31',
+                        higueralGold: '#DFB86C',
+                        higueralGoldHover: '#C9A355',
+                        higueralBorder: '#233352'
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        body { background-color: #f3f4f6; font-family: system-ui, -apple-system, sans-serif; }
+        body { background-color: #0B1320; color: #F3F4F6; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
+        input, select { font-size: 16px !important; }
+        .glass-card { background: rgba(19, 29, 49, 0.75); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(223, 184, 108, 0.2); }
     </style>
 </head>
-<body class="text-gray-800 pb-16">
+<body class="pb-24">
 
-    <!-- Header -->
-    <header class="bg-slate-800 text-white shadow-md sticky top-0 z-50">
-        <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
-            <div class="flex items-center space-x-2">
-                <i class="fa-solid fa-coins text-amber-400 text-xl"></i>
-                <h1 class="font-bold text-lg tracking-wide">Propinas Higueral</h1>
+    <!-- Header Estilo Higueral -->
+    <header class="sticky top-0 z-40 glass-card border-b border-higueralBorder px-4 py-3 flex items-center justify-between shadow-lg">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-full bg-higueralGold/20 border border-higueralGold flex items-center justify-center text-higueralGold">
+                <i class="fa-solid fa-leaf"></i>
             </div>
-            <div class="flex space-x-2">
-                <button onclick="resetData()" class="bg-rose-600 hover:bg-rose-700 text-white text-xs px-3 py-1.5 rounded-lg font-medium transition flex items-center space-x-1">
-                    <i class="fa-solid fa-rotate-right"></i><span>Reiniciar</span>
-                </button>
-                <button onclick="compartirResumen()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-1.5 rounded-lg font-medium transition flex items-center space-x-1">
-                    <i class="fa-brands fa-whatsapp"></i><span>Enviar</span>
-                </button>
+            <div>
+                <h1 class="font-bold text-lg text-white leading-tight tracking-wide">HIGUERAL</h1>
+                <p class="text-xs text-higueralGold uppercase tracking-widest font-medium">Reparto de Propinas</p>
             </div>
+        </div>
+        <div class="flex items-center space-x-2">
+            <button onclick="abrirModalInstrucciones()" class="w-9 h-9 rounded-full bg-higueralDark border border-higueralBorder text-higueralGold flex items-center justify-center active:scale-95 transition">
+                <i class="fa-solid fa-info"></i>
+            </button>
+            <button onclick="abrirAjustesDatos()" class="w-9 h-9 rounded-full bg-higueralDark border border-higueralBorder text-higueralGold flex items-center justify-center active:scale-95 transition">
+                <i class="fa-solid fa-gear"></i>
+            </button>
         </div>
     </header>
 
-    <main class="max-w-4xl mx-auto px-3 py-4 space-y-4">
+    <main class="max-w-md mx-auto px-4 mt-4 space-y-4">
 
-        <!-- Panel de Control / Bote -->
-        <section class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+        <!-- Bote Total Card -->
+        <section class="glass-card rounded-2xl p-5 shadow-xl relative overflow-hidden">
+            <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-higueralGold/5 rounded-full pointer-events-none"></div>
+            <label for="boteTotal" class="block text-xs uppercase tracking-wider text-higueralGold font-semibold mb-2">
+                <i class="fa-solid fa-coins mr-1"></i> Bote Total de Propinas (€)
+            </label>
+            <div class="relative flex items-center">
+                <span class="absolute left-4 text-2xl text-higueralGold font-bold">€</span>
+                <input type="number" id="boteTotal" step="0.01" min="0" placeholder="0.00" oninput="calcularReparto()"
+                    class="w-full bg-higueralDark border border-higueralBorder text-white text-3xl font-bold rounded-xl pl-12 pr-4 py-3 focus:outline-none focus:border-higueralGold transition">
+            </div>
+            
+            <!-- Resumen Rápido -->
+            <div class="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-higueralBorder text-sm">
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Bote Total Recaudado (€)</label>
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-emerald-600 font-bold text-lg">€</span>
-                        <input type="number" id="boteTotal" step="0.01" value="" placeholder="0.00" oninput="calcularRealtime()" 
-                            class="w-full pl-8 pr-4 py-2.5 bg-emerald-50 border border-emerald-300 rounded-xl font-bold text-emerald-800 text-xl focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                    </div>
+                    <span class="text-gray-400 text-xs block">Total Horas</span>
+                    <span id="lblTotalHoras" class="font-bold text-white text-base">0 h</span>
                 </div>
-                <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 flex justify-around text-center">
-                    <div>
-                        <span class="block text-[10px] uppercase font-bold text-slate-400">Total Horas</span>
-                        <span id="lblTotalHoras" class="text-lg font-bold text-slate-700">0 h</span>
-                    </div>
-                    <div class="border-r border-slate-200"></div>
-                    <div>
-                        <span class="block text-[10px] uppercase font-bold text-slate-400">Precio / Hora</span>
-                        <span id="lblPrecioHora" class="text-lg font-bold text-emerald-600">0.00 €</span>
-                    </div>
-                </div>
-                <div class="bg-amber-50 border border-amber-200 p-3 rounded-xl flex items-center justify-between">
-                    <div>
-                        <span class="block text-[10px] uppercase font-bold text-amber-700">Repartido 100%</span>
-                        <span id="lblRepartido" class="text-base font-bold text-amber-900">0.00 €</span>
-                    </div>
-                    <i class="fa-solid fa-circle-check text-amber-500 text-xl"></i>
+                <div>
+                    <span class="text-gray-400 text-xs block">Cuadre Exacto Bote</span>
+                    <span id="lblCuadre" class="font-bold text-emerald-400 text-base">0.00 € (Exacto)</span>
                 </div>
             </div>
         </section>
 
-        <!-- Secciones de Departamentos -->
-        <div id="seccionesContainer" class="space-y-6"></div>
+        <!-- Botones de Acción Rápida -->
+        <div class="grid grid-cols-2 gap-3">
+            <button onclick="abrirModalEmpleado()" class="bg-higueralGold hover:bg-higueralGoldHover text-higueralDark font-bold py-3 px-4 rounded-xl shadow-lg flex items-center justify-center space-x-2 active:scale-95 transition">
+                <i class="fa-solid fa-user-plus"></i>
+                <span>Nuevo Empleado</span>
+            </button>
+            <button onclick="compartirWhatsApp()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg flex items-center justify-center space-x-2 active:scale-95 transition">
+                <i class="fa-brands fa-whatsapp text-lg"></i>
+                <span>Enviar Resumen</span>
+            </button>
+        </div>
 
-        <!-- Apartado: Personal que ya ha cobrado -->
-        <section class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
-            <div class="flex items-center justify-between mb-3">
-                <h3 class="font-bold text-sm text-slate-700 flex items-center space-x-2">
-                    <i class="fa-solid fa-clipboard-check text-emerald-600"></i>
-                    <span>Personal que ya ha cobrado su propina</span>
-                </h3>
-                <span id="contadorPagados" class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-0.5 rounded-full font-bold">0 entregados</span>
+        <!-- Lista de Empleados -->
+        <section class="space-y-3">
+            <div class="flex items-center justify-between px-1">
+                <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-300">
+                    <i class="fa-solid fa-users mr-1 text-higueralGold"></i> Empleados Registrados (<span id="countEmpleados">0</span>)
+                </h2>
+                <button onclick="marcarTodos(true)" class="text-xs text-higueralGold hover:underline">Marcar todos</button>
             </div>
-            <div id="listaPagadosContainer" class="text-sm text-slate-500 italic">
-                Ningún empleado marcado como entregado todavía. Marca la casilla de verificación en cada fila cuando entregues el dinero.
+
+            <div id="listaEmpleados" class="space-y-3">
+                <!-- Se inyecta dinámicamente vía JS -->
             </div>
         </section>
-
-        <!-- Total General Resumen -->
-        <section class="bg-slate-900 text-white rounded-2xl p-4 shadow-lg flex justify-between items-center">
-            <div>
-                <span class="text-xs uppercase tracking-wider text-slate-400 font-bold block">Total General Restaurante</span>
-                <span id="txtTotalPersonas" class="text-sm text-slate-300">0 personas con horas</span>
-            </div>
-            <div class="text-right">
-                <span id="txtGranTotalEuros" class="text-2xl font-black text-amber-400">0.00 €</span>
-            </div>
-        </section>
-
     </main>
 
+    <!-- MODAL EMPLEADO -->
+    <div id="modalEmpleado" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-higueralCard border border-higueralBorder w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl p-6 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between pb-2 border-b border-higueralBorder">
+                <h3 id="modalTitulo" class="text-lg font-bold text-white">Añadir Empleado</h3>
+                <button onclick="cerrarModalEmpleado()" class="text-gray-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            
+            <input type="hidden" id="empId">
+
+            <div>
+                <label class="block text-xs uppercase text-gray-400 font-semibold mb-1">Nombre completo</label>
+                <input type="text" id="empNombre" placeholder="Ej. Sole" class="w-full bg-higueralDark border border-higueralBorder text-white rounded-xl px-4 py-3 focus:outline-none focus:border-higueralGold">
+            </div>
+
+            <div>
+                <label class="block text-xs uppercase text-gray-400 font-semibold mb-1">Departamento</label>
+                <select id="empDepto" class="w-full bg-higueralDark border border-higueralBorder text-white rounded-xl px-4 py-3 focus:outline-none focus:border-higueralGold">
+                    <option value="Camarero">Camarero / Sala</option>
+                    <option value="Cocina">Cocina / Chef</option>
+                    <option value="Limpieza">Limpieza</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs uppercase text-gray-400 font-semibold mb-1">Horas semanales</label>
+                <div class="flex space-x-2 mb-2">
+                    <button type="button" onclick="setHorasPredefinidas(40)" class="flex-1 bg-higueralDark border border-higueralBorder py-1.5 rounded-lg text-xs font-semibold text-higueralGold active:bg-higueralGold/20">40h (Completa)</button>
+                    <button type="button" onclick="setHorasPredefinidas(20)" class="flex-1 bg-higueralDark border border-higueralBorder py-1.5 rounded-lg text-xs font-semibold text-higueralGold active:bg-higueralGold/20">20h (Media)</button>
+                    <button type="button" onclick="setHorasPredefinidas(16)" class="flex-1 bg-higueralDark border border-higueralBorder py-1.5 rounded-lg text-xs font-semibold text-higueralGold active:bg-higueralGold/20">16h (Fin de sem.)</button>
+                </div>
+                <input type="number" id="empHoras" step="0.5" min="0" placeholder="40" class="w-full bg-higueralDark border border-higueralBorder text-white rounded-xl px-4 py-3 focus:outline-none focus:border-higueralGold">
+            </div>
+
+            <div class="flex items-center space-x-3 pt-2">
+                <input type="checkbox" id="empActivo" checked class="w-5 h-5 accent-higueralGold rounded bg-higueralDark border-higueralBorder">
+                <label for="empActivo" class="text-sm text-gray-300 font-medium">Incluir en el reparto de esta semana</label>
+            </div>
+
+            <div class="flex space-x-3 pt-4">
+                <button onclick="cerrarModalEmpleado()" class="flex-1 bg-higueralDark border border-higueralBorder text-gray-300 font-bold py-3 rounded-xl">Cancelar</button>
+                <button onclick="guardarEmpleado()" class="flex-1 bg-higueralGold hover:bg-higueralGoldHover text-higueralDark font-bold py-3 rounded-xl shadow-lg">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL AJUSTES -->
+    <div id="modalAjustes" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-higueralCard border border-higueralBorder w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between pb-2 border-b border-higueralBorder">
+                <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-gear mr-2 text-higueralGold"></i> Ajustes y Respaldo</h3>
+                <button onclick="cerrarAjustesDatos()" class="text-gray-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="space-y-3 pt-2">
+                <button onclick="exportarJSON()" class="w-full bg-higueralDark border border-higueralBorder hover:border-higueralGold text-white font-semibold py-3 px-4 rounded-xl flex items-center justify-between">
+                    <span>Exportar Copia de Seguridad (JSON)</span>
+                    <i class="fa-solid fa-download text-higueralGold"></i>
+                </button>
+                <label class="w-full bg-higueralDark border border-higueralBorder hover:border-higueralGold text-white font-semibold py-3 px-4 rounded-xl flex items-center justify-between cursor-pointer">
+                    <span>Importar Copia de Seguridad</span>
+                    <i class="fa-solid fa-upload text-higueralGold"></i>
+                    <input type="file" accept=".json" onchange="importarJSON(event)" class="hidden">
+                </label>
+                <button onclick="resetearEmpleadosPorDefecto()" class="w-full bg-red-950/40 border border-red-900/50 text-red-400 font-semibold py-3 px-4 rounded-xl text-sm">
+                    Restaurar plantilla inicial Higueral
+                </button>
+            </div>
+            <button onclick="cerrarAjustesDatos()" class="w-full bg-higueralGold text-higueralDark font-bold py-3 rounded-xl mt-4">Cerrar</button>
+        </div>
+    </div>
+
+    <!-- MODAL INSTRUCCIONES IPHONE -->
+    <div id="modalInstrucciones" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-higueralCard border border-higueralBorder w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between pb-2 border-b border-higueralBorder">
+                <h3 class="text-lg font-bold text-white"><i class="fa-solid fa-mobile-screen mr-2 text-higueralGold"></i> Instalar en iPhone</h3>
+                <button onclick="cerrarModalInstrucciones()" class="text-gray-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <ol class="space-y-3 text-sm text-gray-300">
+                <li class="flex items-start space-x-3">
+                    <span class="bg-higueralGold text-higueralDark font-bold w-6 h-6 rounded-full flex items-center justify-center shrink-0">1</span>
+                    <span>Abre esta página web en el navegador <b>Safari</b> de tu iPhone.</span>
+                </li>
+                <li class="flex items-start space-x-3">
+                    <span class="bg-higueralGold text-higueralDark font-bold w-6 h-6 rounded-full flex items-center justify-center shrink-0">2</span>
+                    <span>Pulsa el botón <b>Compartir</b> <i class="fa-solid fa-arrow-up-from-bracket text-higueralGold"></i> situado en la barra inferior.</span>
+                </li>
+                <li class="flex items-start space-x-3">
+                    <span class="bg-higueralGold text-higueralDark font-bold w-6 h-6 rounded-full flex items-center justify-center shrink-0">3</span>
+                    <span>Selecciona <b>«Añadir a la pantalla de inicio»</b> <i class="fa-solid fa-square-plus text-higueralGold"></i> y pulsa <b>Añadir</b>.</span>
+                </li>
+            </ol>
+            <button onclick="cerrarModalInstrucciones()" class="w-full bg-higueralGold text-higueralDark font-bold py-3 rounded-xl mt-4">Entendido</button>
+        </div>
+    </div>
+
+    <!-- Script de Cálculo Exacto -->
     <script>
-        let datos = {
-            bote: "",
-            deptos: [
-                {
-                    nombre: "1. Sala / Camareros",
-                    id: "camareros",
-                    empleados: [
-                        { nombre: "", horas: "", nota: "", cobrado: false },
-                        { nombre: "", horas: "", nota: "", cobrado: false },
-                        { nombre: "", horas: "", nota: "", cobrado: false },
-                        { nombre: "", horas: "", nota: "", cobrado: false }
-                    ]
-                },
-                {
-                    nombre: "2. Cocina",
-                    id: "cocina",
-                    empleados: [
-                        { nombre: "", horas: "", nota: "", cobrado: false },
-                        { nombre: "", horas: "", nota: "", cobrado: false },
-                        { nombre: "", horas: "", nota: "", cobrado: false }
-                    ]
-                },
-                {
-                    nombre: "3. Limpieza",
-                    id: "limpieza",
-                    empleados: [
-                        { nombre: "", horas: "", nota: "", cobrado: false },
-                        { nombre: "", horas: "", nota: "", cobrado: false }
-                    ]
-                }
-            ]
-        };
+        let empleados = JSON.parse(localStorage.getItem('higueral_empleados')) || [
+            { id: 1, nombre: "Sole", depto: "Camarero", horas: 40, activo: true },
+            { id: 2, nombre: "Monse", depto: "Camarero", horas: 40, activo: true },
+            { id: 3, nombre: "Lenin", depto: "Camarero", horas: 40, activo: true },
+            { id: 4, nombre: "Personal Cocina 1", depto: "Cocina", horas: 40, activo: true }
+        ];
 
-        function cargarStorage() {
-            const guardado = localStorage.getItem("propinas_higueral_data_v3");
-            if (guardado) {
-                try { datos = JSON.parse(guardado); } catch(e) {}
+        document.getElementById('boteTotal').value = localStorage.getItem('higueral_bote') || '';
+
+        function guardarLocal() {
+            localStorage.setItem('higueral_empleados', JSON.stringify(empleados));
+            localStorage.setItem('higueral_bote', document.getElementById('boteTotal').value);
+        }
+
+        function calcularReparto() {
+            const boteTotal = parseFloat(document.getElementById('boteTotal').value) || 0;
+            guardarLocal();
+
+            const activos = empleados.filter(e => e.activo);
+            const totalHoras = activos.reduce((sum, e) => sum + parseFloat(e.horas || 0), 0);
+
+            document.getElementById('lblTotalHoras').textContent = totalHoras.toFixed(1) + ' h';
+            document.getElementById('countEmpleados').textContent = empleados.length;
+
+            if (totalHoras === 0 || boteTotal === 0) {
+                document.getElementById('lblCuadre').textContent = "0.00 € (Exacto)";
+                renderizarLista(empleados.map(e => ({ ...e, porcentaje: 0, propinaFinal: 0 })), boteTotal);
+                return;
             }
-            document.getElementById("boteTotal").value = datos.bote;
-            renderizarEstructura();
-            calcularRealtime();
+
+            // Cálculo exacto en céntimos (enteros) para evitar errores de punto flotante de JavaScript
+            const boteCéntimos = Math.round(boteTotal * 100);
+            let céntimosRestantes = boteCéntimos;
+
+            let resultados = empleados.map(emp => {
+                if (!emp.activo) {
+                    return { ...emp, porcentaje: 0, propinaFinal: 0, residuo: 0 };
+                }
+                const porcentaje = (emp.horas / totalHoras) * 100;
+                const propinaExactaCéntimos = (boteCéntimos * emp.horas) / totalHoras;
+                const propinaBaseCéntimos = Math.floor(propinaExactaCéntimos);
+                céntimosRestantes -= propinaBaseCéntimos;
+
+                return {
+                    ...emp,
+                    porcentaje,
+                    propinaCéntimos: propinaBaseCéntimos,
+                    residuo: propinaExactaCéntimos - propinaBaseCéntimos
+                };
+            });
+
+            // Distribuir los céntimos sobrantes uno a uno a los trabajadores con mayor residuo decimal
+            if (céntimosRestantes > 0) {
+                resultados.sort((a, b) => b.residuo - a.residuo);
+                for (let i = 0; i < céntimosRestantes; i++) {
+                    let indexActivo = resultados.findIndex(r => r.activo);
+                    if (indexActivo !== -1) {
+                        resultados[i % resultados.filter(r => r.activo).length].propinaCéntimos += 1;
+                    }
+                }
+                resultados.sort((a, b) => a.id - b.id); // Restaurar orden original
+            }
+
+            // Convertir de nuevo a euros con formato exacto
+            resultados = resultados.map(emp => ({
+                ...emp,
+                propinaFinal: emp.activo ? emp.propinaCéntimos / 100 : 0
+            }));
+
+            const totalDistribuido = resultados.reduce((sum, e) => sum + e.propinaFinal, 0);
+            const lblCuadre = document.getElementById('lblCuadre');
+            lblCuadre.textContent = totalDistribuido.toFixed(2) + ' € (Exacto)';
+            lblCuadre.className = 'font-bold text-emerald-400 text-base';
+
+            renderizarLista(resultados, boteTotal);
         }
 
-        function guardarStorage() {
-            datos.bote = document.getElementById("boteTotal").value;
-            localStorage.setItem("propinas_higueral_data_v3", JSON.stringify(datos));
-        }
+        function renderizarLista(resultados, boteTotal) {
+            const contenedor = document.getElementById('listaEmpleados');
+            if (resultados.length === 0) {
+                contenedor.innerHTML = `<div class="text-center py-8 text-gray-500 bg-higueralCard rounded-2xl border border-higueralBorder">No hay empleados registrados.</div>`;
+                return;
+            }
 
-        function renderizarEstructura() {
-            const container = document.getElementById("seccionesContainer");
-            container.innerHTML = "";
-
-            datos.deptos.forEach((dept, dIndex) => {
-                let htmlRows = "";
-                dept.empleados.forEach((emp, eIndex) => {
-                    htmlRows += `
-                        <tr class="border-b border-slate-100 hover:bg-slate-50 transition">
-                            <td class="p-2.5 text-center text-xs font-semibold text-slate-400">${eIndex + 1}</td>
-                            <td class="p-2.5">
-                                <input type="text" value="${emp.nombre}" placeholder="Nombre..." 
-                                    oninput="actualizarTexto(${dIndex}, ${eIndex}, 'nombre', this.value)"
-                                    class="w-full bg-transparent font-medium text-slate-800 focus:bg-white focus:px-2 py-1 rounded border border-transparent focus:border-slate-300 focus:outline-none">
-                            </td>
-                            <td class="p-2.5">
-                                <input type="text" inputmode="decimal" value="${emp.horas}" placeholder="" 
-                                    oninput="actualizarHoras(${dIndex}, ${eIndex}, this.value)"
-                                    class="w-20 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-right font-semibold focus:bg-white focus:outline-none focus:ring-1 focus:ring-slate-400">
-                            </td>
-                            <td class="p-2.5 hidden sm:table-cell">
-                                <input type="text" value="${emp.nota}" placeholder="Turno..." 
-                                    oninput="actualizarTexto(${dIndex}, ${eIndex}, 'nota', this.value)"
-                                    class="w-full bg-transparent text-slate-500 text-sm focus:bg-white focus:px-2 py-1 rounded border border-transparent focus:border-slate-300 focus:outline-none">
-                            </td>
-                            <td class="p-2.5 text-right font-bold text-emerald-700" id="propina_${dIndex}_${eIndex}">
-                                0.00 €
-                            </td>
-                            <td class="p-2.5 text-center">
-                                <button type="button" id="btn_cobrado_${dIndex}_${eIndex}" onclick="toggleCobrado(${dIndex}, ${eIndex})" class="w-7 h-7 rounded-lg transition ${emp.cobrado ? 'bg-emerald-500 text-white shadow-sm' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}">
-                                    <i class="fa-solid fa-check text-xs"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                });
-
-                const card = document.createElement("section");
-                card.className = "bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden";
-                card.innerHTML = `
-                    <div class="bg-slate-800 px-4 py-3 text-white flex justify-between items-center">
-                        <h2 class="font-bold text-sm tracking-wide">${dept.nombre}</h2>
-                        <button type="button" onclick="agregarFila(${dIndex})" class="bg-slate-700 hover:bg-slate-600 text-xs px-2.5 py-1 rounded-lg transition flex items-center space-x-1">
-                            <i class="fa-solid fa-plus"></i><span>Añadir</span>
-                        </button>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="text-[11px] uppercase font-bold text-slate-400 bg-slate-50 border-b border-slate-200">
-                                    <th class="p-2.5 text-center w-10">#</th>
-                                    <th class="p-2.5">Nombre Empleado</th>
-                                    <th class="p-2.5">Horas</th>
-                                    <th class="p-2.5 hidden sm:table-cell">Jornada / Notas</th>
-                                    <th class="p-2.5 text-right">Propina (€)</th>
-                                    <th class="p-2.5 text-center w-12">Entregado</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${htmlRows}
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="bg-slate-50 px-4 py-2.5 border-t border-slate-200 flex justify-between items-center text-xs font-bold text-slate-600">
-                        <span>Subtotal ${dept.nombre}</span>
-                        <div class="space-x-4">
-                            <span id="subtotal_horas_${dIndex}">0.0 h</span>
-                            <span class="text-slate-900" id="subtotal_euros_${dIndex}">0.00 €</span>
+            contenedor.innerHTML = resultados.map(emp => `
+                <div class="glass-card rounded-2xl p-4 flex items-center justify-between transition ${emp.activo ? '' : 'opacity-50'}">
+                    <div class="flex items-center space-x-3">
+                        <input type="checkbox" ${emp.activo ? 'checked' : ''} onchange="toggleActivo(${emp.id})" class="w-5 h-5 accent-higueralGold rounded bg-higueralDark border-higueralBorder cursor-pointer">
+                        <div>
+                            <h4 class="font-bold text-white text-base">${emp.nombre}</h4>
+                            <div class="flex items-center space-x-2 mt-0.5">
+                                <span class="text-xs px-2 py-0.5 rounded-md bg-higueralDark text-higueralGold border border-higueralBorder">${emp.depto}</span>
+                                <span class="text-xs text-gray-400">${emp.horas}h (${emp.porcentaje ? emp.porcentaje.toFixed(1) : 0}%)</span>
+                            </div>
                         </div>
                     </div>
-                `;
-                container.appendChild(card);
-            });
+                    <div class="text-right flex items-center space-x-3">
+                        <div>
+                            <span class="text-lg font-bold text-higueralGold block">${emp.propinaFinal.toFixed(2)} €</span>
+                        </div>
+                        <div class="flex flex-col space-y-1">
+                            <button onclick="abrirModalEmpleado(${emp.id})" class="text-gray-400 hover:text-white p-1"><i class="fa-solid fa-pen text-xs"></i></button>
+                            <button onclick="eliminarEmpleado(${emp.id})" class="text-red-400 hover:text-red-300 p-1"><i class="fa-solid fa-trash text-xs"></i></button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
         }
 
-        function calcularRealtime() {
-            guardarStorage();
+        function toggleActivo(id) {
+            const emp = empleados.find(e => e.id === id);
+            if (emp) { emp.activo = !emp.activo; calcularReparto(); }
+        }
 
-            let tempHorasTotales = 0;
-            datos.deptos.forEach(d => {
-                d.empleados.forEach(e => {
-                    if (e.nombre.trim() !== "" && e.horas !== "" && !isNaN(e.horas) && Number(e.horas) > 0) {
-                        tempHorasTotales += Number(e.horas);
-                    }
-                });
-            });
-
-            const bote = parseFloat(document.getElementById("boteTotal").value) || 0;
-            const precioHora = tempHorasTotales > 0 ? bote / tempHorasTotales : 0;
-
-            let totalHorasGlobal = 0;
-            let totalEurosGlobal = 0;
-            let totalPersonasActivas = 0;
-            let listaPagadosHTML = "";
-            let countPagados = 0;
-
-            datos.deptos.forEach((dept, dIndex) => {
-                let deptHoras = 0;
-                let deptEuros = 0;
-
-                dept.empleados.forEach((emp, eIndex) => {
-                    const hNum = emp.horas !== "" && !isNaN(emp.horas) ? Number(emp.horas) : 0;
-                    const propina = hNum * precioHora;
-
-                    const celdaPropina = document.getElementById(`propina_${dIndex}_${eIndex}`);
-                    if (celdaPropina) {
-                        celdaPropina.innerText = propina.toFixed(2) + " €";
-                    }
-
-                    if (emp.nombre.trim() !== "" && hNum > 0) {
-                        deptHoras += hNum;
-                        deptEuros += propina;
-                        totalPersonasActivas++;
-                    }
-
-                    if (emp.cobrado && emp.nombre.trim() !== "") {
-                        countPagados++;
-                        listaPagadosHTML += `
-                            <div class="flex justify-between items-center py-1.5 border-b border-slate-100 last:border-0">
-                                <span class="font-medium text-slate-800"><i class="fa-solid fa-check text-emerald-500 mr-2"></i>${emp.nombre} <span class="text-xs text-slate-400">(${dept.nombre})</span></span>
-                                <span class="font-bold text-emerald-700">${propina.toFixed(2)} €</span>
-                            </div>
-                        `;
-                    }
-                });
-
-                const elSubHoras = document.getElementById(`subtotal_horas_${dIndex}`);
-                const elSubEuros = document.getElementById(`subtotal_euros_${dIndex}`);
-                if (elSubHoras) elSubHoras.innerText = deptHoras.toFixed(1) + " h";
-                if (elSubEuros) elSubEuros.innerText = deptEuros.toFixed(2) + " €";
-
-                totalHorasGlobal += deptHoras;
-                totalEurosGlobal += deptEuros;
-            });
-
-            document.getElementById("lblTotalHoras").innerText = totalHorasGlobal.toFixed(1) + " h";
-            document.getElementById("lblPrecioHora").innerText = precioHora.toFixed(2) + " €/h";
-            document.getElementById("lblRepartido").innerText = totalEurosGlobal.toFixed(2) + " €";
-            document.getElementById("txtTotalPersonas").innerText = totalPersonasActivas + " personas con horas";
-            document.getElementById("txtGranTotalEuros").innerText = totalEurosGlobal.toFixed(2) + " €";
-
-            const containerPagados = document.getElementById("listaPagadosContainer");
-            const lblContadorPagados = document.getElementById("contadorPagados");
-            lblContadorPagados.innerText = countPagados + " entregados";
-            if (countPagados > 0) {
-                containerPagados.innerHTML = listaPagadosHTML;
+        function abrirModalEmpleado(id = null) {
+            document.getElementById('modalEmpleado').classList.remove('hidden');
+            if (id) {
+                const emp = empleados.find(e => e.id === id);
+                document.getElementById('modalTitulo').textContent = 'Editar Empleado';
+                document.getElementById('empId').value = emp.id;
+                document.getElementById('empNombre').value = emp.nombre;
+                document.getElementById('empDepto').value = emp.depto;
+                document.getElementById('empHoras').value = emp.horas;
+                document.getElementById('empActivo').checked = emp.activo;
             } else {
-                containerPagados.innerHTML = '<span class="text-slate-400 italic">Ningún empleado marcado como entregado todavía. Marca la casilla de verificación en cada fila cuando entregues el dinero.</span>';
+                document.getElementById('modalTitulo').textContent = 'Añadir Empleado';
+                document.getElementById('empId').value = '';
+                document.getElementById('empNombre').value = '';
+                document.getElementById('empDepto').value = 'Camarero';
+                document.getElementById('empHoras').value = '40';
+                document.getElementById('empActivo').checked = true;
             }
         }
 
-        function actualizarHoras(dIndex, eIndex, valor) {
-            datos.deptos[dIndex].empleados[eIndex].horas = valor;
-            calcularRealtime();
+        function cerrarModalEmpleado() { document.getElementById('modalEmpleado').classList.add('hidden'); }
+        function setHorasPredefinidas(h) { document.getElementById('empHoras').value = h; }
+
+        function guardarEmpleado() {
+            const id = document.getElementById('empId').value;
+            const nombre = document.getElementById('empNombre').value.trim();
+            const depto = document.getElementById('empDepto').value;
+            const horas = parseFloat(document.getElementById('empHoras').value);
+            const activo = document.getElementById('empActivo').checked;
+
+            if (!nombre) { alert('Introduce el nombre del empleado.'); return; }
+            if (isNaN(horas) || horas < 0) { alert('Introduce un número de horas válido.'); return; }
+
+            if (id) {
+                const emp = empleados.find(e => e.id == id);
+                emp.nombre = nombre; emp.depto = depto; emp.horas = horas; emp.activo = activo;
+            } else {
+                const nuevoId = empleados.length > 0 ? Math.max(...empleados.map(e => e.id)) + 1 : 1;
+                empleados.push({ id: nuevoId, nombre, depto, horas, activo });
+            }
+            cerrarModalEmpleado();
+            calcularReparto();
         }
 
-        function actualizarTexto(dIndex, eIndex, campo, valor) {
-            datos.deptos[dIndex].empleados[eIndex][campo] = valor;
-            calcularRealtime();
+        function eliminarEmpleado(id) {
+            if (confirm('¿Seguro que deseas eliminar este empleado?')) {
+                empleados = empleados.filter(e => e.id !== id);
+                calcularReparto();
+            }
         }
 
-        function agregarFila(dIndex) {
-            datos.deptos[dIndex].empleados.push({ nombre: "", horas: "", nota: "", cobrado: false });
-            guardarStorage();
-            renderizarEstructura();
-            calcularRealtime();
+        function marcarTodos(estado) { empleados.forEach(e => e.activo = estado); calcularReparto(); }
+        function abrirAjustesDatos() { document.getElementById('modalAjustes').classList.remove('hidden'); }
+        function cerrarAjustesDatos() { document.getElementById('modalAjustes').classList.add('hidden'); }
+        function abrirModalInstrucciones() { document.getElementById('modalInstrucciones').classList.remove('hidden'); }
+        function cerrarModalInstrucciones() { document.getElementById('modalInstrucciones').classList.add('hidden'); }
+
+        function exportarJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(empleados, null, 2));
+            const dl = document.createElement('a');
+            dl.setAttribute("href", dataStr);
+            dl.setAttribute("download", "empleados_higueral.json");
+            document.body.appendChild(dl); dl.click(); dl.remove();
         }
 
-        function toggleCobrado(dIndex, eIndex) {
-            datos.deptos[dIndex].empleados[eIndex].cobrado = !datos.deptos[dIndex].empleados[eIndex].cobrado;
+        function importarJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    empleados = JSON.parse(e.target.result);
+                    calcularReparto(); cerrarAjustesDatos();
+                    alert('¡Datos importados con éxito!');
+                } catch (err) { alert('Error al leer el archivo.'); }
+            };
+            reader.readAsText(file);
+        }
+
+        function resetearEmpleadosPorDefecto() {
+            if (confirm('¿Restaurar plantilla inicial?')) {
+                empleados = [
+                    { id: 1, nombre: "Sole", depto: "Camarero", horas: 40, activo: true },
+                    { id: 2, nombre: "Monse", depto: "Camarero", horas: 40, activo: true },
+                    { id: 3, nombre: "Lenin", depto: "Camarero", horas: 40, activo: true },
+                    { id: 4, nombre: "Personal Cocina 1", depto: "Cocina", horas: 40, activo: true }
+                ];
+                calcularReparto(); cerrarAjustesDatos();
+            }
+        }
+
+        function compartirWhatsApp() {
+            const boteTotal = parseFloat(document.getElementById('boteTotal').value) || 0;
+            const activos = empleados.filter(e => e.activo);
+            const totalHoras = activos.reduce((sum, e) => sum + parseFloat(e.horas || 0), 0);
             
-            const btn = document.getElementById(`btn_cobrado_${dIndex}_${eIndex}`);
-            if (btn) {
-                if (datos.deptos[dIndex].empleados[eIndex].cobrado) {
-                    btn.className = "w-7 h-7 rounded-lg transition bg-emerald-500 text-white shadow-sm";
-                } else {
-                    btn.className = "w-7 h-7 rounded-lg transition bg-slate-100 text-slate-400 hover:bg-slate-200";
-                }
-            }
-            calcularRealtime();
-        }
+            let texto = `🌿 *REPARTO DE PROPINAS - HIGUERAL* 🌿\n`;
+            texto += `💰 Bote total: *${boteTotal.toFixed(2)} €*\n`;
+            texto += `⏱️ Horas totales: *${totalHoras.toFixed(1)} h*\n\n`;
+            texto += `📋 *Desglose exacto:*\n`;
 
-        function resetData() {
-            if (confirm("¿Seguro que quieres reiniciar todos los datos y horas?")) {
-                localStorage.removeItem("propinas_higueral_data_v3");
-                location.reload();
-            }
-        }
-
-        function compartirResumen() {
-            const bote = document.getElementById("boteTotal").value || "0";
-            let texto = `💰 *REPARTO DE PROPINAS* 💰\nBote Total: *${bote} €*\n\n`;
-            
-            datos.deptos.forEach(d => {
-                let hayGente = false;
-                let subTexto = `*${d.nombre}*\n`;
-                const precioHora = parseFloat(document.getElementById("lblPrecioHora").innerText) || 0;
-                
-                d.empleados.forEach(e => {
-                    if (e.nombre.trim() !== "" && e.horas !== "" && Number(e.horas) > 0) {
-                        hayGente = true;
-                        const propina = Number(e.horas) * precioHora;
-                        const estado = e.cobrado ? "✅ (Pagado)" : "⏳";
-                        subTexto += `• ${e.nombre} (${e.horas}h): *${propina.toFixed(2)} €* ${estado}\n`;
-                    }
-                });
-                if (hayGente) {
-                    texto += subTexto + "\n";
-                }
+            activos.forEach(emp => {
+                const propor = totalHoras > 0 ? (boteTotal * emp.horas) / totalHoras : 0;
+                texto += `• ${emp.nombre} (${emp.horas}h): *${propor.toFixed(2)} €*\n`;
             });
 
-            if (navigator.share) {
-                navigator.share({ title: 'Reparto Propinas', text: texto }).catch(() => {});
-            } else {
-                window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent(texto));
-            }
+            const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`;
+            window.open(url, '_blank');
         }
 
-        window.onload = cargarStorage;
+        calcularReparto();
     </script>
 </body>
 </html>
