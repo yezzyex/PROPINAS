@@ -54,12 +54,15 @@
                         <span id="lblPrecioHora" class="text-lg font-bold text-emerald-600">0.00 €</span>
                     </div>
                 </div>
-                <div class="bg-amber-50 border border-amber-200 p-3 rounded-xl flex items-center justify-between">
+                <!-- Estado reparto y Alerta de Descuadre -->
+                <div id="cardEstadoReparto" class="bg-amber-50 border border-amber-200 p-3 rounded-xl flex items-center justify-between transition-all">
                     <div>
-                        <span class="block text-[10px] uppercase font-bold text-amber-700">Repartido 100%</span>
+                        <span class="block text-[10px] uppercase font-bold text-amber-700" id="lblEstadoTitulo">Repartido 100%</span>
                         <span id="lblRepartido" class="text-base font-bold text-amber-900">0.00 €</span>
                     </div>
-                    <i class="fa-solid fa-circle-check text-amber-500 text-xl"></i>
+                    <div id="iconoEstadoReparto">
+                        <i class="fa-solid fa-circle-check text-amber-500 text-xl"></i>
+                    </div>
                 </div>
             </div>
         </section>
@@ -129,7 +132,7 @@
         };
 
         function cargarStorage() {
-            const guardado = localStorage.getItem("propinas_higueral_data_v5");
+            const guardado = localStorage.getItem("propinas_higueral_data_v6");
             if (guardado) {
                 try { datos = JSON.parse(guardado); } catch(e) {}
             }
@@ -140,7 +143,7 @@
 
         function guardarStorage() {
             datos.bote = document.getElementById("boteTotal").value;
-            localStorage.setItem("propinas_higueral_data_v5", JSON.stringify(datos));
+            localStorage.setItem("propinas_higueral_data_v6", JSON.stringify(datos));
         }
 
         function renderizarEstructura() {
@@ -232,7 +235,6 @@
             });
 
             const bote = parseFloat(String(document.getElementById("boteTotal").value).replace(',', '.')) || 0;
-            // Mantenemos la máxima precisión flotante interna sin redondear prematuramente
             const precioHora = tempHorasTotales > 0 ? bote / tempHorasTotales : 0;
 
             let totalHorasGlobal = 0;
@@ -247,12 +249,10 @@
 
                 dept.empleados.forEach((emp, eIndex) => {
                     let hNum = parseFloat(String(emp.horas).replace(',', '.')) || 0;
-                    // Cálculo interno preciso
                     const propina = hNum * precioHora;
 
                     const celdaPropina = document.getElementById(`propina_${dIndex}_${eIndex}`);
                     if (celdaPropina) {
-                        // Mostramos 2 decimales limpios de formato moneda
                         celdaPropina.innerText = propina.toFixed(2) + " €";
                     }
 
@@ -282,10 +282,41 @@
                 totalEurosGlobal += deptEuros;
             });
 
-            // Formateo visual limpio en 2 decimales estándar para euros
+            let sumaRedondeadaFilas = 0;
+            datos.deptos.forEach(d => {
+                d.empleados.forEach(e => {
+                    let hNum = parseFloat(String(e.horas).replace(',', '.')) || 0;
+                    if (e.nombre.trim() !== "" && hNum > 0) {
+                        sumaRedondeadaFilas += Number((hNum * precioHora).toFixed(2));
+                    }
+                });
+            });
+
+            const diferenciaRedondeo = Math.round((bote - sumaRedondeadaFilas) * 100);
+
+            const cardEstado = document.getElementById("cardEstadoReparto");
+            const lblTituloEstado = document.getElementById("lblEstadoTitulo");
+            const iconoEstado = document.getElementById("iconoEstadoReparto");
+            const lblRepartido = document.getElementById("lblRepartido");
+
+            lblRepartido.innerText = totalEurosGlobal.toFixed(2) + " €";
+
+            if (bote > 0 && Math.abs(diferenciaRedondeo) > 0 && totalPersonasActivas > 0) {
+                cardEstado.className = "bg-rose-50 border border-rose-200 p-3 rounded-xl flex items-center justify-between transition-all";
+                lblTituloEstado.innerText = `⚠️ Descuadre de ${Math.abs(diferenciaRedondeo)} cént. (${diferenciaRedondeo > 0 ? 'Falta' : 'Sobra'})`;
+                lblTituloEstado.className = "block text-[10px] uppercase font-bold text-rose-700";
+                lblRepartido.className = "text-base font-bold text-rose-900";
+                iconoEstado.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-rose-500 text-xl"></i>';
+            } else {
+                cardEstado.className = "bg-amber-50 border border-amber-200 p-3 rounded-xl flex items-center justify-between transition-all";
+                lblTituloEstado.innerText = "Repartido 100%";
+                lblTituloEstado.className = "block text-[10px] uppercase font-bold text-amber-700";
+                lblRepartido.className = "text-base font-bold text-amber-900";
+                iconoEstado.innerHTML = '<i class="fa-solid fa-circle-check text-amber-500 text-xl"></i>';
+            }
+
             document.getElementById("lblTotalHoras").innerText = totalHorasGlobal + " h";
             document.getElementById("lblPrecioHora").innerText = precioHora.toFixed(2) + " €/h";
-            document.getElementById("lblRepartido").innerText = totalEurosGlobal.toFixed(2) + " €";
             document.getElementById("txtTotalPersonas").innerText = totalPersonasActivas + " personas con horas";
             document.getElementById("txtGranTotalEuros").innerText = totalEurosGlobal.toFixed(2) + " €";
 
@@ -332,7 +363,7 @@
 
         function resetData() {
             if (confirm("¿Seguro que quieres reiniciar todos los datos y horas?")) {
-                localStorage.removeItem("propinas_higueral_data_v5");
+                localStorage.removeItem("propinas_higueral_data_v6");
                 location.reload();
             }
         }
