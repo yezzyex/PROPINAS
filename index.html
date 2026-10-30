@@ -129,7 +129,7 @@
         };
 
         function cargarStorage() {
-            const guardado = localStorage.getItem("propinas_higueral_data_v4");
+            const guardado = localStorage.getItem("propinas_higueral_data_v5");
             if (guardado) {
                 try { datos = JSON.parse(guardado); } catch(e) {}
             }
@@ -140,7 +140,7 @@
 
         function guardarStorage() {
             datos.bote = document.getElementById("boteTotal").value;
-            localStorage.setItem("propinas_higueral_data_v4", JSON.stringify(datos));
+            localStorage.setItem("propinas_higueral_data_v5", JSON.stringify(datos));
         }
 
         function renderizarEstructura() {
@@ -195,7 +195,7 @@
                                 <tr class="text-[11px] uppercase font-bold text-slate-400 bg-slate-50 border-b border-slate-200">
                                     <th class="p-2.5 text-center w-10">#</th>
                                     <th class="p-2.5">Nombre Empleado</th>
-                                    <th class="p-2.5">Horas (admite decimales)</th>
+                                    <th class="p-2.5">Horas</th>
                                     <th class="p-2.5 hidden sm:table-cell">Jornada / Notas</th>
                                     <th class="p-2.5 text-right">Propina (€)</th>
                                     <th class="p-2.5 text-center w-12">Entregado</th>
@@ -209,7 +209,7 @@
                     <div class="bg-slate-50 px-4 py-2.5 border-t border-slate-200 flex justify-between items-center text-xs font-bold text-slate-600">
                         <span>Subtotal ${dept.nombre}</span>
                         <div class="space-x-4">
-                            <span id="subtotal_horas_${dIndex}">0.0 h</span>
+                            <span id="subtotal_horas_${dIndex}">0 h</span>
                             <span class="text-slate-900" id="subtotal_euros_${dIndex}">0.00 €</span>
                         </div>
                     </div>
@@ -232,6 +232,7 @@
             });
 
             const bote = parseFloat(String(document.getElementById("boteTotal").value).replace(',', '.')) || 0;
+            // Mantenemos la máxima precisión flotante interna sin redondear prematuramente
             const precioHora = tempHorasTotales > 0 ? bote / tempHorasTotales : 0;
 
             let totalHorasGlobal = 0;
@@ -246,11 +247,13 @@
 
                 dept.empleados.forEach((emp, eIndex) => {
                     let hNum = parseFloat(String(emp.horas).replace(',', '.')) || 0;
+                    // Cálculo interno preciso
                     const propina = hNum * precioHora;
 
                     const celdaPropina = document.getElementById(`propina_${dIndex}_${eIndex}`);
                     if (celdaPropina) {
-                        celdaPropina.innerText = propina.toFixed(4) + " €";
+                        // Mostramos 2 decimales limpios de formato moneda
+                        celdaPropina.innerText = propina.toFixed(2) + " €";
                     }
 
                     if (emp.nombre.trim() !== "" && hNum > 0) {
@@ -264,7 +267,7 @@
                         listaPagadosHTML += `
                             <div class="flex justify-between items-center py-1.5 border-b border-slate-100 last:border-0">
                                 <span class="font-medium text-slate-800"><i class="fa-solid fa-check text-emerald-500 mr-2"></i>${emp.nombre} <span class="text-xs text-slate-400">(${dept.nombre})</span></span>
-                                <span class="font-bold text-emerald-700">${propina.toFixed(4)} €</span>
+                                <span class="font-bold text-emerald-700">${propina.toFixed(2)} €</span>
                             </div>
                         `;
                     }
@@ -272,18 +275,19 @@
 
                 const elSubHoras = document.getElementById(`subtotal_horas_${dIndex}`);
                 const elSubEuros = document.getElementById(`subtotal_euros_${dIndex}`);
-                if (elSubHoras) elSubHoras.innerText = deptHoras.toFixed(2) + " h";
-                if (elSubEuros) elSubEuros.innerText = deptEuros.toFixed(4) + " €";
+                if (elSubHoras) elSubHoras.innerText = deptHoras + " h";
+                if (elSubEuros) elSubEuros.innerText = deptEuros.toFixed(2) + " €";
 
                 totalHorasGlobal += deptHoras;
                 totalEurosGlobal += deptEuros;
             });
 
-            document.getElementById("lblTotalHoras").innerText = totalHorasGlobal.toFixed(2) + " h";
-            document.getElementById("lblPrecioHora").innerText = precioHora.toFixed(4) + " €/h";
+            // Formateo visual limpio en 2 decimales estándar para euros
+            document.getElementById("lblTotalHoras").innerText = totalHorasGlobal + " h";
+            document.getElementById("lblPrecioHora").innerText = precioHora.toFixed(2) + " €/h";
             document.getElementById("lblRepartido").innerText = totalEurosGlobal.toFixed(2) + " €";
             document.getElementById("txtTotalPersonas").innerText = totalPersonasActivas + " personas con horas";
-            document.getElementById("txtGranTotalEuros").innerText = totalEurosGlobal.toFixed(4) + " €";
+            document.getElementById("txtGranTotalEuros").innerText = totalEurosGlobal.toFixed(2) + " €";
 
             const containerPagados = document.getElementById("listaPagadosContainer");
             const lblContadorPagados = document.getElementById("contadorPagados");
@@ -328,7 +332,7 @@
 
         function resetData() {
             if (confirm("¿Seguro que quieres reiniciar todos los datos y horas?")) {
-                localStorage.removeItem("propinas_higueral_data_v4");
+                localStorage.removeItem("propinas_higueral_data_v5");
                 location.reload();
             }
         }
